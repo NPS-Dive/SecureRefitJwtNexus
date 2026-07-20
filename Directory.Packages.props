@@ -1,0 +1,34 @@
+<Project>
+	<!--
+    Directory.Packages.props enables Central Package Management.
+
+    This means NuGet package versions can be managed centrally here instead
+    of being repeated in every project file.
+
+    Later we will add package versions for:
+      - JWT bearer authentication
+      - Swagger/OpenAPI
+      - Refit
+      - Refit.HttpClientFactory
+      - Unit testing packages
+  -->
+
+	<PropertyGroup>
+		<!--
+      Enables Central Package Management for all projects under this directory.
+    -->
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--
+      PackageVersion entries will be added in later implementation steps.
+    -->
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+	</ItemGroup>
+
+
+</Project>

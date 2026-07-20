@@ -1,0 +1,50 @@
+<Project>
+	<!--
+    Directory.Build.props applies common MSBuild settings to all projects
+    under this solution directory.
+
+    This helps us keep repository-wide coding/build standards in one place
+    instead of repeating them in every .csproj file.
+  -->
+
+	<PropertyGroup>
+		<!--
+      Enable nullable reference types.
+      This reduces the chance of runtime NullReferenceException bugs.
+    -->
+		<Nullable>enable</Nullable>
+
+		<!--
+      Enable implicit using directives for modern C# projects.
+      This keeps files cleaner by reducing repetitive using statements.
+    -->
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!--
+      Use the latest C# language version available to the installed .NET SDK.
+    -->
+		<LangVersion>latest</LangVersion>
+
+		<!--
+      Produce deterministic builds where possible.
+      Useful for repeatable local and CI/CD builds.
+    -->
+		<Deterministic>true</Deterministic>
+
+		<!--
+      We will keep XML documentation disabled at the skeleton stage.
+      Later, if we want Swagger XML comments, we can enable this deliberately.
+    -->
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+		<!--
+      Use latest built-in .NET analyzer rules.
+    -->
+		<AnalysisLevel>latest</AnalysisLevel>
+
+		<!--
+      Enable built-in .NET analyzers.
+    -->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	</PropertyGroup>
+</Project>

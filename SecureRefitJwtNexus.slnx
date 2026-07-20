@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="ListMaker.Contracts/ListMaker.Contracts.csproj" Id="54735cf0-4da2-4033-a9f7-b1ffee4b15d2" />
+  </Folder>
+  <Folder Name="/src/Clients/">
+    <Project Path="ListMaker.Client/ListMaker.Client.csproj" Id="a28cffbd-bfb0-43d4-b2d9-564c9287e9eb" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/ListMaker/">
+    <Project Path="ListMaker.Api/ListMaker.Api.csproj" Id="be68c23c-0f51-45ae-969d-e64c89c3d322" />
+  </Folder>
+  <Folder Name="/src/Services/ListReader/">
+    <Project Path="ListReader.Api/ListReader.Api.csproj" Id="627704d8-0d61-4820-92ee-d2aa403e995a" />
+  </Folder>
+</Solution>
