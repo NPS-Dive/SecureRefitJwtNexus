@@ -6,13 +6,36 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  
+	<ItemGroup>
+		<!--
+      Refit provides the typed REST API interface mechanism used by this client library.
+      The actual version should come from Directory.Packages.props.
+    -->
+		<PackageReference Include="Refit" />
+
+		<!--
+      Refit.HttpClientFactory adds integration with IHttpClientFactory so that
+      typed Refit clients can be registered through dependency injection cleanly.
+    -->
+		<PackageReference Include="Refit.HttpClientFactory" />
+
+		<!--
+      Required abstractions for IServiceCollection extension methods.
+    -->
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+
+		<!--
+      Required for binding and reading options from configuration when this client
+      library is registered by consuming applications.
+    -->
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+	</ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ListMaker.Contracts\ListMaker.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Lists\" />
     <Folder Include="Authentication\" />
   </ItemGroup>
 
