@@ -1,5 +1,5 @@
 <Project>
-	<!--
+  <!--
     Directory.Packages.props enables Central Package Management.
 
     This means NuGet package versions can be managed centrally here instead
@@ -12,23 +12,22 @@
       - Refit.HttpClientFactory
       - Unit testing packages
   -->
-
-	<PropertyGroup>
-		<!--
+  <PropertyGroup>
+    <!--
       Enables Central Package Management for all projects under this directory.
     -->
-		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<!--
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
       PackageVersion entries will be added in later implementation steps.
     -->
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-	</ItemGroup>
-
-
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+    <!--<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />-->
+    <!--<PackageVersion Include="Microsoft.OpenApi" Version="3.9.0" />-->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.2.3" />
+  </ItemGroup>
 </Project>
