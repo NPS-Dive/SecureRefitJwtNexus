@@ -6,15 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" />
+		<PackageReference Include="Refit.HttpClientFactory" />
+		<PackageReference Include="Swashbuckle.AspNetCore" />
+		<!--<PackageReference Include="Microsoft.OpenApi" />-->
+	</ItemGroup>
 	
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Features\Authentication\Configuration\" />
-    <Folder Include="Features\Authentication\Models\" />
-    <Folder Include="Features\Authentication\Services\" />
-    <Folder Include="Features\Lists\" />
-    <Folder Include="Infrastructure\Authentication\" />
     <Folder Include="Infrastructure\Http\Authentication\" />
     <Folder Include="Infrastructure\Http\Configuration\" />
     <Folder Include="Infrastructure\OpenApi\" />
