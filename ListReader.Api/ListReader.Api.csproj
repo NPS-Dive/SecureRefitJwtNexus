@@ -16,8 +16,6 @@
 	
 
   <ItemGroup>
-    <Folder Include="Infrastructure\Http\Authentication\" />
-    <Folder Include="Infrastructure\Http\Configuration\" />
     <Folder Include="Infrastructure\OpenApi\" />
   </ItemGroup>
 
