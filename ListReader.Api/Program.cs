@@ -8,6 +8,8 @@ using ListReader.Api.Infrastructure.Authentication;
 using ListReader.Api.Infrastructure.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Diagnostics;
+using System.Net;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -73,19 +75,26 @@ builder.Services
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        JwtOptions jwtOptions = builder.Configuration
-            .GetSection(JwtOptions.SectionName)
-            .Get<JwtOptions>()
-            ?? throw new InvalidOperationException(
-                $"Missing configuration section '{JwtOptions.SectionName}'.");
+    .AddJwtBearer();
 
-        options.RequireHttpsMetadata = !builder.Environment.IsEnvironment("Testing");
+builder.Services.Configure<JwtBearerOptions>(
+    JwtBearerDefaults.AuthenticationScheme,
+    options =>
+    {
+        IConfiguration configuration = builder.Configuration;
+        IHostEnvironment environment = builder.Environment;
+
+        JwtOptions jwtOptions = configuration
+                                    .GetSection(JwtOptions.SectionName)
+                                    .Get<JwtOptions>()
+                                ?? throw new InvalidOperationException(
+                                    $"Missing configuration section '{JwtOptions.SectionName}'.");
+
+        options.RequireHttpsMetadata = !environment.IsEnvironment("Testing");
         options.SaveToken = false;
 
         options.TokenValidationParameters = new TokenValidationParameters
-            {
+        {
             ValidateIssuer = true,
             ValidIssuer = jwtOptions.Issuer,
 
@@ -98,8 +107,9 @@ builder.Services
 
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
-            };
+        };
     });
+
 
 builder.Services.AddAuthorization();
 
@@ -127,6 +137,46 @@ if (!app.Environment.IsEnvironment("Testing"))
     {
     app.UseHttpsRedirection();
     }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        IExceptionHandlerPathFeature? exceptionFeature =
+            context.Features.Get<IExceptionHandlerPathFeature>();
+
+        Exception? exception = exceptionFeature?.Error;
+
+        int statusCode = exception switch
+        {
+            HttpRequestException { StatusCode: HttpStatusCode.BadGateway } =>
+                StatusCodes.Status502BadGateway,
+
+            HttpRequestException =>
+                StatusCodes.Status502BadGateway,
+
+            _ =>
+                StatusCodes.Status500InternalServerError
+        };
+
+        string title = statusCode switch
+        {
+            StatusCodes.Status502BadGateway =>
+                "Downstream service failure.",
+
+            _ =>
+                "An unexpected server error occurred."
+        };
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/problem+json";
+
+        await Results.Problem(
+                title: title,
+                statusCode: statusCode)
+            .ExecuteAsync(context);
+    });
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
