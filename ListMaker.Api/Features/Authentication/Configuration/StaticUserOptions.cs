@@ -1,26 +1,22 @@
 ﻿namespace ListMaker.Api.Features.Authentication.Configuration;
 
 /// <summary>
-/// Represents the static development user credentials accepted by the ListMaker API.
+/// Represents static login credentials used by the authentication endpoint.
 /// </summary>
-/// <remarks>
-/// This is intentionally simple for the demo integration scenario.
-/// Production systems should use a real identity provider or secure credential store.
-/// </remarks>
 public sealed class StaticUserOptions
 {
     /// <summary>
-    /// The configuration section name used in appsettings files.
+    /// The configuration section name used for static user settings.
     /// </summary>
     public const string SectionName = "StaticUser";
 
     /// <summary>
-    /// Gets or sets the static username allowed to authenticate.
+    /// Gets or sets the configured username.
     /// </summary>
     public string Username { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the static password allowed to authenticate.
+    /// Gets or sets the configured password.
     /// </summary>
     public string Password { get; set; } = string.Empty;
 }

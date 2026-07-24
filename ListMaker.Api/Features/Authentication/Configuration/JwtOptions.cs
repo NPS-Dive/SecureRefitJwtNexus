@@ -1,32 +1,37 @@
 namespace ListMaker.Api.Features.Authentication.Configuration;
 
 /// <summary>
-/// Represents JWT configuration values used for issuing and validating access tokens.
+/// Represents JWT authentication configuration values.
 /// </summary>
 public sealed class JwtOptions
 {
     /// <summary>
-    /// The configuration section name used in appsettings files.
+    /// The configuration section name used for JWT settings.
     /// </summary>
     public const string SectionName = "Jwt";
 
     /// <summary>
-    /// Gets or sets the token issuer.
+    /// The minimum accepted signing key length for HMAC SHA algorithms.
+    /// </summary>
+    public const int MinimumSigningKeyLength = 32;
+
+    /// <summary>
+    /// Gets or sets the JWT issuer.
     /// </summary>
     public string Issuer { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the token audience.
+    /// Gets or sets the JWT audience.
     /// </summary>
     public string Audience { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the symmetric signing key used to sign JWT tokens.
+    /// Gets or sets the JWT signing key.
     /// </summary>
     public string SigningKey { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the token expiration duration in minutes.
+    /// Gets or sets the JWT expiration duration in minutes.
     /// </summary>
-    public int ExpirationMinutes { get; set; } = 60;
+    public int ExpirationMinutes { get; set; }
 }
