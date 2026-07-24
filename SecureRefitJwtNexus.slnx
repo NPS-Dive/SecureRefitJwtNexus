@@ -18,4 +18,15 @@
   <Folder Name="/src/Services/ListReader/">
     <Project Path="ListReader.Api/ListReader.Api.csproj" Id="627704d8-0d61-4820-92ee-d2aa403e995a" />
   </Folder>
+  <Folder Name="/Tests/" />
+  <Folder Name="/Tests/Integration/">
+    <Project Path="Tests/Integration/ListMaker.Api.IntegrationTests/ListMaker.Api.IntegrationTests.csproj" Id="d4f92510-afa9-48af-a899-831e03931f93" />
+    <Project Path="Tests/Integration/ListReader.Api.IntegrationTests/ListReader.Api.IntegrationTests.csproj" Id="244d423f-9bc7-4a12-8232-ff3aa7f76a92" />
+  </Folder>
+  <Folder Name="/Tests/Load/" />
+  <Folder Name="/Tests/Unit/">
+    <Project Path="Tests/Unit/ListMaker.Api.UnitTests/ListMaker.Api.UnitTests.csproj" Id="d60df23c-6619-4186-b135-764593ed5569" />
+    <Project Path="Tests/Unit/ListMaker.Client.UnitTests/ListMaker.Client.UnitTests.csproj" Id="aea5ea4b-a0ee-4d80-a3ad-c5beda528c82" />
+    <Project Path="Tests/Unit/ListReader.Api.UnitTests/ListReader.Api.UnitTests.csproj" Id="93649d14-cee1-40ba-8a63-befccb0bae5b" />
+  </Folder>
 </Solution>
