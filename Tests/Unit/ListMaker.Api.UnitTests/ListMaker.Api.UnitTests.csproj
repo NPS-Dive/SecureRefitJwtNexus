@@ -19,10 +19,12 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Moq" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\ListMaker.Api\ListMaker.Api.csproj" />
+		<ProjectReference Include="..\..\..\ListMaker.Contracts\ListMaker.Contracts.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
