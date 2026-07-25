@@ -1,6 +1,6 @@
-# Performance and Observability Stack
+# Performance and Observability
 
-This folder contains the local performance testing and observability setup for the API lab.
+This folder contains the local performance testing and observability stack for `ApiIntegrationDemo`.
 
 It includes:
 
@@ -8,266 +8,169 @@ It includes:
 - Prometheus metrics storage
 - Grafana dashboards
 - Docker Compose configuration
-- Provisioned Grafana data source and dashboards
 
 ---
 
 ## Folder Structure
 ```text
 perf/
-  docker-compose.grafana.yml
-  prometheus.yml
+├── README.md
+├── docker-compose.grafana.yml
+│
+├── prometheus/
+│   └── prometheus.yml
+│
+├── grafana/
+│   ├── dashboards/
+│   │   └── grafana-k6-dashboard.json
+│   │
+│   └── provisioning/
+│       ├── dashboards/
+│       │   └── dashboards.yml
+│       └── datasources/
+│           └── prometheus.yml
+│
+└── k6/
+├── README.md
+├── run-all-load-tests.ps1
+├── run-listmaker-login-load.ps1
+├── run-listmaker-generated-list-load.ps1
+├── run-listreader-login-load.ps1
+├── run-listreader-relay-load.ps1
+├── append-results.ps1
+├── config/
+├── helpers/
+├── results/
+└── *.js
 
-  grafana/
-dashboards/
-grafana-k6-dashboard.json
-provisioning/
-datasources/
-prometheus.yml
-dashboards/
-dashboards.yml
 ```
-
-  k6/
-README.md
-run-all-load-tests.ps1
-run-listmaker-login-load.ps1
-run-listmaker-generated-list-load.ps1
-run-listreader-login-load.ps1
-run-listreader-relay-load.ps1
-append-results.ps1
-*.js
-results/
-
 ---
 
 ## Services
 
-| Service | URL | Notes |
-|---|---|---|
-| Prometheus | http://localhost:9090 | Receives k6 remote-write metrics |
-| Grafana | http://localhost:33000 | Dashboard UI |
+The observability stack contains:
 
-Grafana is mapped to host port `33000` because Windows may reserve or block ports around `3000`.
+| Service | Purpose |
+|---|---|
+| Prometheus | Stores k6 metrics |
+| Grafana | Visualizes k6 metrics |
 
 ---
 
 ## Start Observability Stack
 
-From the `perf` folder:
+From the solution root:
 
-powershell
+```powershell
+cd .\perf
 docker compose -f .\docker-compose.grafana.yml up -d
-
-Check containers:
-
-powershell
-docker ps
-
-Open:
-
-```text
-Prometheus: http://localhost:9090
-Grafana:    http://localhost:33000
-```
-
-Default Grafana login:
-
-```text
-Username: admin
-Password: admin
 ```
 
 ---
 
-## Stop Stack
+## Access Grafana
+
+Grafana is available at:
+
+```text
+http://127.0.0.1:33000
+```
+
+Grafana uses host port `33000` because ports around `3000` were unavailable on the Windows host.
+
+Container mapping:
+
+```text
+127.0.0.1:33000 -> grafana:3000
+```
+
+---
+
+## Prometheus Datasource
+
+Grafana should connect to Prometheus by using the Docker Compose service name:
+
+```text
+http://prometheus:9090
+```
+
+This is correct because Grafana and Prometheus run in the same Docker Compose network.
+
+Do not use this inside Grafana datasource configuration:
+
+```text
+http://localhost:9090
+```
+
+because `localhost` would refer to the Grafana container itself.
+
+---
+
+## Stop Observability Stack
 
 ```powershell
+cd .\perf
 docker compose -f .\docker-compose.grafana.yml down
 ```
 
-Do not use this unless you want to delete saved Grafana dashboards and data:
+---
+
+## Stop and Remove Volumes
 
 ```powershell
+cd .\perf
 docker compose -f .\docker-compose.grafana.yml down -v
 ```
 
-The `-v` option removes Docker volumes, including Grafana's internal database.
+Warning: this removes the Grafana data volume.
 
 ---
 
-## Prometheus Remote Write
+## Grafana Dashboard Persistence
 
-k6 sends live metrics to Prometheus using:
-
-```powershell
--o experimental-prometheus-rw
-```
-
-Prometheus must be started with:
-
-```yaml
---web.enable-remote-write-receiver
-```
-
-The remote-write endpoint is:
+Grafana UI-created dashboards are stored in the Docker volume:
 
 ```text
-http://localhost:9090/api/v1/write
+grafana-data
 ```
 
----
+To version dashboards in Git:
 
-## Grafana Dashboards
-
-Provisioned dashboards are stored here:
+1. Open Grafana.
+2. Export dashboard JSON.
+3. Save the JSON file under:
 
 ```text
 perf/grafana/dashboards/
 ```
 
-Example:
-
-```text
-perf/grafana/dashboards/grafana-k6-dashboard.json
-```
-
-Grafana loads dashboards using:
-
-```text
-perf/grafana/provisioning/dashboards/dashboards.yml
-```
+4. Commit the file.
 
 ---
 
-## Where Grafana UI Dashboards Are Saved
+## Running Load Tests
 
-Dashboards created or edited in the Grafana UI are stored in Grafana's internal database:
-
-```text
-/var/lib/grafana/grafana.db
-```
-
-In Docker, this database is stored inside the `grafana-data` Docker volume.
-
-These dashboards are persistent as long as the Docker volume is not deleted.
-
-To save UI-created dashboards into source control:
-
-1. Open the dashboard in Grafana.
-2. Go to dashboard settings or share/export.
-3. Export the JSON model.
-4. Save it into:
+See:
 
 ```text
-perf/grafana/dashboards/
+perf/k6/README.md
 ```
 
-Then commit the JSON file.
-
----
-
-## Useful Prometheus Queries
-
-Show all k6 metrics:
-
-```promql
-{__name__=~"k6_.*"}
-```
-
-Total HTTP requests:
-
-```promql
-k6_http_reqs_total
-```
-
-Request rate by test:
-
-```promql
-sum by (test_name) (rate(k6_http_reqs_total[1m]))
-```
-
-p95 latency by test:
-
-```promql
-max by (test_name) (k6_http_req_duration_p95)
-```
-
-p99 latency by test:
-
-```promql
-max by (test_name) (k6_http_req_duration_p99)
-```
-
-Filter relay test:
-
-```promql
-k6_http_req_duration_p95{test_name="listreader-relay-load"}
-```
-
-Error rate by test:
-
-```promql
-sum by (test_name) (rate(k6_http_req_failed_total[1m]))
-```
-
----
-
-## Current Known Performance Finding
-
-Direct endpoints are very fast and stable.
-
-Examples:
-
-- ListMaker login
-- ListReader login
-
-The relay path is the current bottleneck:
-
-```text
-ListReader.Api -> ListMaker.Api
-```
-
-The relay load test is:
-
-```text
-listreader-relay-load
-```
-
-This endpoint currently fails the `p95 < 1000ms` threshold under higher load.
-
-Observed behavior suggests most latency is spent in HTTP waiting time, possibly caused by:
-
-- ThreadPool contention
-- HttpClient connection-pool limits
-- downstream service saturation
-- relay/API-to-API communication overhead
-
----
-
-## Next Recommended Diagnostics
-
-Run fixed-VU tests for the relay endpoint:
-
-```text
-100 VUs
-250 VUs
-500 VUs
-750 VUs
-1000 VUs
-```
-
-Use `dotnet-counters` against `ListReader.Api` during the test:
+Main command:
 
 ```powershell
-dotnet-counters monitor --process-id <PID> System.Runtime Microsoft.AspNetCore.Hosting System.Net.Http
+cd .\perf\k6
+.\run-all-load-tests.ps1
 ```
 
-Important counters:
+---
 
-- ThreadPool Queue Length
-- ThreadPool Completed Work Item Count
-- GC Heap Size
-- Gen 0/1/2 GC Count
-- HTTP current requests
-- outgoing HttpClient connections
+## Related Documentation
+
+See also:
+
+```text
+docs/testing/test-strategy.md
+docs/testing/load-tests.md
+docs/testing/test-execution.md
+```

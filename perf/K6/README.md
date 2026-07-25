@@ -1,325 +1,277 @@
-# k6 Load Testing
+# k6 Load Tests
 
-This folder contains k6 load tests and PowerShell automation scripts.
+This folder contains k6 load tests for `ApiIntegrationDemo`.
 
-The tests can run in two modes:
+The tests cover:
 
-1. Local console/CSV mode
-2. Prometheus remote-write mode for Grafana dashboards
-
----
-
-## Test Scripts
-
-| Test Name | Purpose |
-|---|---|
-| `listmaker-login-load` | Load test ListMaker login endpoint |
-| `listmaker-generated-list-load` | Load test ListMaker generated-list endpoint |
-| `listreader-login-load` | Load test ListReader login endpoint |
-| `listreader-relay-load` | Load test ListReader relay path to ListMaker |
+- `ListMaker.Api` login
+- `ListMaker.Api` generated list endpoint
+- `ListReader.Api` login
+- `ListReader.Api` relay endpoint
 
 ---
 
-## PowerShell Scripts
-
-| Script | Purpose |
-|---|---|
-| `run-all-load-tests.ps1` | Runs all k6 load tests |
-| `run-listmaker-login-load.ps1` | Runs only ListMaker login test |
-| `run-listmaker-generated-list-load.ps1` | Runs only ListMaker generated-list test |
-| `run-listreader-login-load.ps1` | Runs only ListReader login test |
-| `run-listreader-relay-load.ps1` | Runs only ListReader relay test |
-| `append-results.ps1` | Appends summarized k6 results to CSV |
+## Folder Structure
+```text
+perf/k6/
+├── README.md
+├── run-all-load-tests.ps1
+├── run-listmaker-login-load.ps1
+├── run-listmaker-generated-list-load.ps1
+├── run-listreader-login-load.ps1
+├── run-listreader-relay-load.ps1
+├── append-results.ps1
+│
+├── config/
+│   └── environments.js
+│
+├── helpers/
+│   ├── auth.js
+│   ├── checks.js
+│   ├── csv-summary.js
+│   └── headers.js
+│
+├── results/
+│   └── .gitkeep
+│
+├── listmaker-login-load.js
+├── listmaker-generated-list-load.js
+├── listreader-login-load.js
+└── listreader-relay-load.js
+```
 
 ---
 
 ## Prerequisites
 
 Install k6:
+
 ```powershell
 k6 version
 ```
 
-Start the target APIs before running tests.
+Ensure both APIs are running before executing load tests.
 
-Also start the observability stack if Prometheus/Grafana metrics are required:
+---
+
+## API Prerequisites
+
+Start `ListMaker.Api`:
 
 ```powershell
-cd ..\
-docker compose -f .\docker-compose.grafana.yml up -d
-cd .\k6
+dotnet run --project .\src\Services\ListMaker\ListMaker.Api\ListMaker.Api.csproj
 ```
+
+Start `ListReader.Api` in another terminal:
+
+```powershell
+dotnet run --project .\src\Services\ListReader\ListReader.Api\ListReader.Api.csproj
+```
+
+Run these commands from the solution root.
+
+---
+
+## Environment Configuration
+
+Base URLs and environment-specific values are configured in:
+
+```text
+perf/k6/config/environments.js
+```
+
+Before running tests, verify that the configured ports match the running APIs.
 
 ---
 
 ## Run All Load Tests
 
-From this folder:
+From the solution root:
 
 ```powershell
+cd .\perf\k6
 .\run-all-load-tests.ps1
 ```
 
-This runs:
-
-```text
-listmaker-login-load
-listmaker-generated-list-load
-listreader-login-load
-listreader-relay-load
-```
-
-Each test sends metrics to Prometheus by default.
-
 ---
 
-## Run One Test
+## Run Individual Tests
 
-Example:
-
-```powershell
-.\run-listreader-relay-load.ps1
-```
-
-Other examples:
+### ListMaker Login
 
 ```powershell
 .\run-listmaker-login-load.ps1
+```
+
+### ListMaker Generated List
+
+```powershell
 .\run-listmaker-generated-list-load.ps1
+```
+
+### ListReader Login
+
+```powershell
 .\run-listreader-login-load.ps1
 ```
 
----
-
-## Run Without Prometheus
-
-Use `-NoPrometheus` if you only want local k6 output and CSV result appending:
+### ListReader Relay
 
 ```powershell
-.\run-all-load-tests.ps1 -NoPrometheus
-```
-
-Single test:
-
-```powershell
-.\run-listreader-relay-load.ps1 -NoPrometheus
+.\run-listreader-relay-load.ps1
 ```
 
 ---
 
 ## Prometheus Remote Write
 
-The scripts use:
+The PowerShell runners send k6 metrics to Prometheus using:
 
-```powershell
+```text
 -o experimental-prometheus-rw
 ```
 
-Default remote-write URL:
+The runner scripts configure Prometheus remote write settings through environment variables.
 
-```text
-http://localhost:9090/api/v1/write
-```
-
-You can override it:
+Example:
 
 ```powershell
-.\run-all-load-tests.ps1 -PrometheusRemoteWriteUrl "http://localhost:9090/api/v1/write"
+$env:K6_PROMETHEUS_RW_PUSH_INTERVAL = "5s"
 ```
 
 ---
 
-## k6 Tags
+## Tags
 
-Each test sends these tags:
+The runners use tags for better metric filtering.
 
-| Tag | Example |
+Important tags:
+
+| Tag | Description |
 |---|---|
-| `test_name` | `listreader-relay-load` |
-| `run_id` | `20260725-153012` |
-| `k6_env` | `local` |
+| `test_name` | Identifies the test scenario |
+| `run_id` | Identifies the specific execution |
+| `k6_env` | Identifies the target environment |
 
-These tags allow filtering in Prometheus and Grafana.
+Example use cases:
 
-Example PromQL:
-
-```promql
-k6_http_req_duration_p95{test_name="listreader-relay-load"}
-```
-
----
-
-## Useful PromQL Queries
-
-Show all k6 metrics:
-
-```promql
-{__name__=~"k6_.*"}
-```
-
-Request rate by test:
-
-```promql
-sum by (test_name) (rate(k6_http_reqs_total[1m]))
-```
-
-p95 latency by test:
-
-```promql
-max by (test_name) (k6_http_req_duration_p95)
-```
-
-p99 latency by test:
-
-```promql
-max by (test_name) (k6_http_req_duration_p99)
-```
-
-Failures by test:
-
-```promql
-sum by (test_name) (rate(k6_http_req_failed_total[1m]))
-```
-
-Relay p95:
-
-```promql
-k6_http_req_duration_p95{test_name="listreader-relay-load"}
-```
-
-Relay p99:
-
-```promql
-k6_http_req_duration_p99{test_name="listreader-relay-load"}
-```
+- compare one run with another
+- isolate `listreader-relay-load`
+- filter local test data
+- review one execution in Grafana
 
 ---
 
 ## CSV Results
 
-After every test run, the automation calls:
+The load test workflow appends summary results to CSV files under:
 
-```powershell
+```text
+perf/k6/results/
+```
+
+The append process is handled by:
+
+```text
 append-results.ps1
 ```
 
-This appends summarized results into CSV files under the results folder.
-
-The append step runs even when k6 threshold checks fail.
-
-This is intentional because failed tests still produce useful performance data.
-
----
-
-## Exit Code Behavior
-
-k6 returns a non-zero exit code if:
-
-- thresholds fail
-- runtime errors occur
-- the test script fails
-
-The run scripts preserve the k6 exit code separately from the CSV append step.
-
-This avoids a previous k6 threshold failure being accidentally treated as an append-script failure.
-
----
-
-## Current Load Profile
-
-The current load profile uses staged virtual users.
-
-Example range:
-
-```text
-100 VUs up to 1000 VUs
-```
-
-The purpose is to identify performance degradation under increasing concurrency.
-
----
-
-## Current Known Bottleneck
-
-The relay endpoint is the main bottleneck:
-
-```text
-ListReader.Api -> ListMaker.Api
-```
-
-Test:
-
-```text
-listreader-relay-load
-```
-
-Known issue:
-
-```text
-p95 latency exceeds 1000ms under high load
-```
-
-Most of the request duration is waiting time.
-
-Possible causes:
-
-- ThreadPool contention
-- HttpClient connection pool pressure
-- downstream ListMaker saturation
-- API-to-API relay overhead
-- retry/timeout behavior
-- DNS or socket exhaustion under high concurrency
-
----
-
-## Recommended Next Tests
-
-Run fixed-VU relay benchmarks:
-
-```text
-100 VUs
-250 VUs
-500 VUs
-750 VUs
-1000 VUs
-```
-
-Goal:
-
-```text
-Find the degradation knee.
-```
-
-The degradation knee is the point where latency starts increasing sharply or failure rate increases.
-
----
-
-## Recommended Server-Side Profiling
-
-Use `dotnet-counters` during relay load tests.
-
-Find the process ID:
+The runner scripts preserve compatibility with this workflow by resetting:
 
 ```powershell
-dotnet-counters ps
+$global:LASTEXITCODE
 ```
 
-Monitor counters:
-
-```powershell
-dotnet-counters monitor --process-id <PID> System.Runtime Microsoft.AspNetCore.Hosting System.Net.Http
-```
-
-Focus on:
-
-- ThreadPool Queue Length
-- ThreadPool Thread Count
-- CPU usage
-- GC collections
-- allocation rate
-- active HTTP requests
-- outgoing HTTP connections
-
+before invoking the CSV append step.
 
 ---
 
+## Grafana
+
+Start the observability stack first:
+
+```powershell
+cd ..\
+docker compose -f .\docker-compose.grafana.yml up -d
+```
+
+Then open:
+
+```text
+http://127.0.0.1:33000
+```
+
+Use dashboard filters such as:
+
+- `test_name`
+- `run_id`
+- `k6_env`
+
+---
+
+## Expected Results
+
+A successful run should produce:
+
+1. k6 console output
+2. CSV result updates under `perf/k6/results/`
+3. Prometheus metrics
+4. Grafana dashboard data
+
+---
+
+## Known Notes
+
+The `ListReader.Api` relay endpoint is expected to be slower than direct `ListMaker.Api` endpoints because it performs downstream communication:
+
+```text
+Client -> ListReader.Api -> ListMaker.Api -> ListReader.Api -> Client
+```
+
+Higher p95 latency for the relay endpoint should be reviewed as a performance finding.
+
+It is not automatically a functional defect unless the error rate increases or unexpected HTTP 500 responses occur.
+
+---
+
+## Troubleshooting
+
+### k6 command not found
+
+Verify k6 installation:
+
+```powershell
+k6 version
+```
+
+---
+
+### API connection fails
+
+Check that both APIs are running and that `environments.js` contains the correct URLs.
+
+---
+
+### Grafana has no data
+
+Check that:
+
+1. observability stack is running
+2. k6 was executed with Prometheus remote write output
+3. Prometheus remote write endpoint is configured
+4. Grafana datasource points to:
+
+```text
+http://prometheus:9090
+```
+
+---
+
+### CSV file not updated
+
+Check:
+
+1. `append-results.ps1` exists
+2. `results/` folder exists
+3. PowerShell execution policy allows script execution
+4. runner scripts reset `$global:LASTEXITCODE` before appending
