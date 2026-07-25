@@ -1,0 +1,41 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: apilab-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+      - "--storage.tsdb.retention.time=15d"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - apilab-observability
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: apilab-grafana
+    ports:
+      - "127.0.0.1:33000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/provisioning:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - apilab-observability
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  apilab-observability:
+    driver: bridge
